@@ -1,0 +1,148 @@
+/* Print Stylesheet for Quotation */
+
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Hide navigation, buttons, and lists */
+  header,
+  nav,
+  button,
+  .no-print,
+  [data-print="false"] {
+    display: none !important;
+  }
+
+  /* Show only the print area */
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 2cm;
+  }
+
+  /* Typography */
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+  }
+
+  /* Header */
+  .print-header {
+    text-align: center;
+    margin-bottom: 2em;
+    border-bottom: 2px solid #000;
+    padding-bottom: 1em;
+  }
+
+  .print-header img {
+    display: block;
+    margin: 0 auto 1em;
+    height: 60px;
+    width: auto;
+  }
+
+  .print-header h1 {
+    font-size: 20pt;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+  }
+
+  /* Info Grid */
+  .print-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1em;
+    margin-bottom: 2em;
+  }
+
+  .print-info-item {
+    border: 1px solid #ddd;
+    padding: 0.5em;
+  }
+
+  .print-info-label {
+    font-size: 9pt;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 0.25em;
+  }
+
+  .print-info-value {
+    font-size: 11pt;
+    font-weight: 600;
+  }
+
+  /* Calculations Table */
+  .print-calculations {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2em;
+  }
+
+  .print-calculations th,
+  .print-calculations td {
+    border: 1px solid #ddd;
+    padding: 0.5em;
+    text-align: left;
+  }
+
+  .print-calculations th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+  }
+
+  .print-calculations .total-row {
+    background-color: #e8f5e9;
+    font-weight: bold;
+    font-size: 13pt;
+  }
+
+  .print-calculations .value {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* Observations */
+  .print-observations {
+    border: 1px solid #ddd;
+    padding: 1em;
+    background-color: #fafafa;
+    margin-bottom: 2em;
+  }
+
+  .print-observations-title {
+    font-weight: 600;
+    margin-bottom: 0.5em;
+  }
+
+  /* Footer */
+  .print-footer {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid #ddd;
+    font-size: 9pt;
+    color: #666;
+    text-align: center;
+  }
+
+  /* Force page breaks */
+  .page-break {
+    page-break-before: always;
+  }
+}
