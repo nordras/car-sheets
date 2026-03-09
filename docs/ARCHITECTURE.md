@@ -548,6 +548,19 @@ src/
 
 ## Testes (Planejado)
 
+### Regras do Cadastro de Vendedores
+
+- `Nome` e obrigatorio, salvo com `trim()` e limite de 100 caracteres no input.
+- `Telefone` e opcional, mas quando preenchido deve passar em `validatePhone()`.
+- O formulario usa estado de envio (`isSubmitting`) para evitar submit duplicado.
+- A exclusao exige confirmacao do usuario antes de chamar `deleteSeller()`.
+- Fechar o dialog limpa estado de formulario (nome, telefone, erros e modo de edicao).
+
+### Cobertura Atual de Sellers
+
+- `src/test/sellers-tab.test.tsx`: cria, valida, reseta, exclui e exporta vendedores.
+- `src/test/app-context-sellers.test.tsx`: valida `useSellers` no `DataProvider` e operacoes CRUD.
+
 ### Cobertura Desejada: 70%+
 
 ```typescript
@@ -601,4 +614,4 @@ describe('useVehicles', () => {
 
 ---
 
-**Última atualização:** 26 de Janeiro de 2026
+**Última atualização:** 08 de Março de 2026
