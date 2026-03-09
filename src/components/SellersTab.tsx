@@ -14,6 +14,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -22,20 +23,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Seller } from '@/types';
 import { formatPhone, validatePhone } from '@/lib/calculations';
 import { exportSellersToExcel } from '@/lib/excel';
+import { useSellers } from '@/contexts/AppContext';
+import { toast } from 'sonner';
 
-interface SellersTabProps {
-  sellers: Seller[];
-  onAdd: (name: string, phone?: string) => void;
-  onUpdate: (id: string, updates: Partial<Seller>) => void;
-  onDelete: (id: string) => void;
-}
-
-export function SellersTab({ sellers, onAdd, onUpdate, onDelete }: SellersTabProps) {
+export function SellersTab() {
+  const { sellers, addSeller, updateSeller, deleteSeller } = useSellers();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSeller, setEditingSeller] = useState<Seller | null>(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [nameError, setNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const resetForm = () => {
+    setEditingSeller(null);
+    setName('');
+    setPhone('');
+    setNameError('');
+    setPhoneError('');
+    setIsSubmitting(false);
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      resetForm();
+    }
+  };
 
   const handleOpenDialog = (seller?: Seller) => {
     if (seller) {
@@ -43,10 +58,9 @@ export function SellersTab({ sellers, onAdd, onUpdate, onDelete }: SellersTabPro
       setName(seller.name);
       setPhone(seller.phone || '');
     } else {
-      setEditingSeller(null);
-      setName('');
-      setPhone('');
+      resetForm();
     }
+    setNameError('');
     setPhoneError('');
     setIsDialogOpen(true);
   };
@@ -62,23 +76,49 @@ export function SellersTab({ sellers, onAdd, onUpdate, onDelete }: SellersTabPro
   };
 
   const handleSubmit = async () => {
-    if (!name.trim()) return;
-    if (phone && !validatePhone(phone)) {
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+
+    if (!trimmedName) {
+      setNameError('Nome é obrigatório');
+      return;
+    }
+
+    if (trimmedPhone && !validatePhone(trimmedPhone)) {
       setPhoneError('Telefone inválido');
       return;
     }
 
     try {
+      setIsSubmitting(true);
       if (editingSeller) {
-        await updateSeller(editingSeller.id, { name: name.trim(), phone: phone || undefined });
+        await updateSeller(editingSeller.id, {
+          name: trimmedName,
+          phone: trimmedPhone || undefined,
+        });
         toast.success('Vendedor atualizado!');
       } else {
-        await addSeller(name.trim(), phone || undefined);
+        await addSeller(trimmedName, trimmedPhone || undefined);
         toast.success('Vendedor criado!');
       }
       setIsDialogOpen(false);
+      resetForm();
     } catch (error) {
       toast.error('Erro ao salvar vendedor');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteSeller = async (seller: Seller) => {
+    const confirmed = window.confirm(`Deseja excluir o vendedor "${seller.name}"?`);
+    if (!confirmed) return;
+
+    try {
+      await deleteSeller(seller.id);
+      toast.success('Vendedor removido!');
+    } catch (error) {
+      toast.error('Erro ao remover vendedor');
     }
   };
 
@@ -121,10 +161,20 @@ export function SellersTab({ sellers, onAdd, onUpdate, onDelete }: SellersTabPro
                       <TableCell>{seller.phone || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(seller)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Editar vendedor ${seller.name}`}
+                            onClick={() => handleOpenDialog(seller)}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => onDelete(seller.id)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Excluir vendedor ${seller.name}`}
+                            onClick={() => handleDeleteSeller(seller)}
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -145,10 +195,20 @@ export function SellersTab({ sellers, onAdd, onUpdate, onDelete }: SellersTabPro
                       <p className="text-xs text-muted-foreground mt-1">{seller.phone || 'Sem telefone'}</p>
                     </div>
                     <div className="flex gap-1 ml-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(seller)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Editar vendedor ${seller.name}`}
+                        onClick={() => handleOpenDialog(seller)}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(seller.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Excluir vendedor ${seller.name}`}
+                        onClick={() => handleDeleteSeller(seller)}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
@@ -160,12 +220,15 @@ export function SellersTab({ sellers, onAdd, onUpdate, onDelete }: SellersTabPro
         )}
       </CardContent>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-display">
               {editingSeller ? 'Editar Vendedor' : 'Novo Vendedor'}
             </DialogTitle>
+            <DialogDescription>
+              Preencha os dados do vendedor para salvar o cadastro.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -173,9 +236,16 @@ export function SellersTab({ sellers, onAdd, onUpdate, onDelete }: SellersTabPro
               <Input
                 id="sellerName"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                maxLength={100}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (nameError) {
+                    setNameError('');
+                  }
+                }}
                 placeholder="Nome do vendedor"
               />
+              {nameError && <span className="text-sm text-destructive">{nameError}</span>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="sellerPhone">Telefone (opcional)</Label>
@@ -191,11 +261,11 @@ export function SellersTab({ sellers, onAdd, onUpdate, onDelete }: SellersTabPro
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => handleDialogChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button onClick={handleSubmit}>
-              {editingSeller ? 'Salvar' : 'Adicionar'}
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? 'Salvando...' : editingSeller ? 'Salvar' : 'Adicionar'}
             </Button>
           </DialogFooter>
         </DialogContent>
