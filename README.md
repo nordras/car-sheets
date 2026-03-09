@@ -60,6 +60,25 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Testing
+
+Run the automated test suite:
+
+```sh
+npm test
+```
+
+Watch mode while developing:
+
+```sh
+npm run test:watch
+```
+
+Current coverage includes seller registration flows in:
+
+- `src/test/sellers-tab.test.tsx`
+- `src/test/app-context-sellers.test.tsx`
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
